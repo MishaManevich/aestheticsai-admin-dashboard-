@@ -1,0 +1,2971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aesthetics AI - Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #ffffff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            color: #a855f7;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        input, select, button {
+            padding: 10px 15px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        select {
+            min-width: 150px;
+        }
+        
+        button {
+            background: #a855f7;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #9333ea;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .error {
+            background: #dc2626;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: #2a2a2a;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #a855f7;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 12px;
+            border-top: 1px solid #333;
+        }
+        
+        tr.clickable-row:hover {
+            background: #252525;
+            cursor: pointer;
+        }
+        
+        tr.clickable-row {
+            transition: background 0.2s;
+        }
+        
+        .privacy-opted-in {
+            color: #10b981;
+            white-space: nowrap;
+        }
+        
+        .privacy-opted-out {
+            color: #f59e0b;
+            white-space: nowrap;
+        }
+        
+        /* Prevent text wrapping in table cells */
+        table.data-table td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Allow wrapping for specific columns that need it */
+        table.data-table td:nth-child(2), /* User column */
+        table.data-table td:nth-child(3) { /* Email column */
+            white-space: normal;
+            word-break: break-word;
+        }
+        
+        .image-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .image-link:hover {
+            text-decoration: underline;
+        }
+        
+        .score {
+            font-weight: 600;
+        }
+        
+        .stats {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .stats .stat-card {
+            flex: 0 0 auto;
+            min-width: 140px;
+        }
+        
+        .stat-card {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #a855f7;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .data-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #a855f7;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .data-item {
+            background: #0f0f0f;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .data-label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .data-value {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .expandable-row {
+            cursor: pointer;
+        }
+        
+        .row-details {
+            display: none;
+            background: #0f0f0f;
+            padding: 15px;
+            border-top: 1px solid #333;
+        }
+        
+        .row-details.expanded {
+            display: block;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #888;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-tab:hover {
+            color: #a855f7;
+        }
+        
+        .nav-tab.active {
+            color: #a855f7;
+            border-bottom-color: #a855f7;
+        }
+        
+        /* Screen Containers */
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        /* User List Styles */
+        .user-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .user-card:hover {
+            background: #252525;
+            border-color: #a855f7;
+        }
+        
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #a855f7;
+        }
+        
+        .user-email {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .user-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .user-stat {
+            color: #888;
+        }
+        
+        .user-stat strong {
+            color: #fff;
+        }
+        
+        /* User Detail Styles */
+        .back-button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .back-button:hover {
+            background: #444;
+        }
+        
+        /* Tab Styles for Scan Detail */
+        .scan-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .scan-tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #888;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .scan-tab:hover {
+            color: #a855f7;
+        }
+        
+        .scan-tab.active {
+            color: #a855f7;
+            border-bottom-color: #a855f7;
+        }
+        
+        .scan-tab-content {
+            display: none;
+        }
+        
+        .scan-tab-content.active {
+            display: block;
+        }
+        
+        /* Three Column Layout */
+        .three-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 1400px) {
+            .three-column-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .column-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .column-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #a855f7;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .user-profile-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .scan-timeline {
+            margin-top: 30px;
+        }
+        
+        .scan-item {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .scan-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .scan-date {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .scan-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .scan-score-item {
+            background: #0f0f0f;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .scan-score-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .scan-score-value {
+            color: #a855f7;
+            font-size: 20px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Aesthetics AI - Admin Dashboard</h1>
+        
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showScreen('users')">👥 Users</button>
+            <button class="nav-tab" onclick="showScreen('scans')">📊 Scans</button>
+            <button class="nav-tab" onclick="showScreen('card-generator')">🎨 Card Generator</button>
+        </div>
+        
+        <!-- Scans Screen -->
+        <div id="scans-screen" class="screen">
+            <div class="stats" id="stats"></div>
+            
+            <div class="controls">
+                <input 
+                    type="text" 
+                    id="searchEmail" 
+                    placeholder="Search by email or name..."
+                    onkeyup="filterTable()"
+                >
+                <select id="privacyFilter" onchange="filterTable()">
+                    <option value="">All Privacy Status</option>
+                    <option value="✅ Opted In">Opted In Only</option>
+                    <option value="⚠️ Opted Out">Opted Out Only</option>
+                </select>
+                <select id="statusFilter" onchange="filterTable()">
+                    <option value="">All Status</option>
+                    <option value="successful">✅ Successful (Paid)</option>
+                    <option value="failed">❌ Failed</option>
+                    <option value="unpaid">⏳ Unpaid</option>
+                </select>
+                <select id="sortBy" onchange="loadScans()">
+                    <option value="scan_date DESC">Newest First</option>
+                    <option value="scan_date ASC">Oldest First</option>
+                    <option value="overall_score DESC">Highest Score</option>
+                    <option value="overall_score ASC">Lowest Score</option>
+                </select>
+                <button onclick="loadScans()">Refresh</button>
+                <button onclick="exportCSV()">Export CSV</button>
+            </div>
+            
+            <div id="error"></div>
+            <div id="loading" class="loading">
+                <div>Loading scan data...</div>
+                <div style="margin-top: 10px; font-size: 12px; color: #888;">This may take a few seconds</div>
+            </div>
+            <div id="tableContainer" style="display: none;">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Overall</th>
+                        <th>V-Taper</th>
+                        <th>Symmetry</th>
+                        <th>Definition</th>
+                        <th>Body Fat</th>
+                        <th>Privacy</th>
+                        <th>Images</th>
+                        <th style="width: 20px;">▼</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Users Screen -->
+        <div id="users-screen" class="screen active">
+            <div class="controls">
+                <input 
+                    type="text" 
+                    id="searchUsers" 
+                    placeholder="Search users by email or name..."
+                    onkeyup="filterUsers()"
+                >
+                <button onclick="loadUsers()">Refresh</button>
+            </div>
+            
+            <div id="usersError"></div>
+            <div id="usersLoading" class="loading">
+                <div>Loading users...</div>
+            </div>
+            <div id="usersContainer" style="display: none;"></div>
+        </div>
+        
+        <!-- User Detail Screen -->
+        <div id="user-detail-screen" class="screen">
+            <button class="back-button" onclick="showScreen('users')">← Back to Users</button>
+            <div id="userDetailContainer"></div>
+        </div>
+        
+        <!-- Scan Detail Screen -->
+        <div id="scan-detail-screen" class="screen">
+            <button class="back-button" onclick="showScreen('scans')">← Back to Scans</button>
+            <div id="scanDetailContainer"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase credentials (from Config.swift)
+        const SUPABASE_URL = 'https://tvzqykmqykqvmvbxubhb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2enF5a21xeWtxdm12Ynh1YmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MDM2MjQsImV4cCI6MjA3NzI3OTYyNH0.EKzFnkhf3yjP1oeLCv-ykrNohNfEuDWLwd6EHpXiurc';
+        
+        // Initialize Supabase client (CDN exposes supabase as global)
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let allData = [];
+        let allUsers = [];
+        let currentUserId = null;
+        
+        // Screen Navigation
+        function showScreen(screenName) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected screen
+            const screen = document.getElementById(`${screenName}-screen`);
+            if (screen) {
+                screen.classList.add('active');
+            }
+            
+            // Activate corresponding tab
+            const tab = Array.from(document.querySelectorAll('.nav-tab')).find(t => {
+                if (screenName === 'scans') return t.textContent.includes('Scans');
+                if (screenName === 'users') return t.textContent.includes('Users');
+                if (screenName === 'card-generator') return t.textContent.includes('Card Generator');
+                return false;
+            });
+            if (tab) {
+                tab.classList.add('active');
+            }
+            
+            // Load data for the screen
+            if (screenName === 'scans') {
+                loadScans();
+            } else if (screenName === 'users') {
+                loadUsers();
+            }
+            // card-generator doesn't need data loading
+        }
+        
+        async function loadScans() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const tableContainer = document.getElementById('tableContainer');
+            const stats = document.getElementById('stats');
+            
+            loading.style.display = 'block';
+            loading.textContent = 'Loading scan data...';
+            error.innerHTML = '';
+            tableContainer.style.display = 'none';
+            
+            try {
+                console.log('Connecting to Supabase...');
+                console.log('URL:', SUPABASE_URL);
+                
+                const sortBy = document.getElementById('sortBy').value;
+                const [column, order] = sortBy.split(' ');
+                
+                let data, queryError;
+                
+                // Try querying the view directly with retry logic
+                let retries = 3;
+                while (retries > 0) {
+                    try {
+                        const query = supabaseClient
+                            .from('admin_scan_dashboard')
+                            .select('*')
+                            .order(column, { ascending: order === 'ASC' })
+                            .limit(500);
+                        
+                        const result = await query;
+                        data = result.data;
+                        queryError = result.error;
+                        
+                        if (!queryError && data) {
+                            // Debug: Log first few scans to check scan_status
+                            console.log('📊 View query successful - loaded', data.length, 'scans');
+                            if (data.length > 0) {
+                                console.log('📊 First 3 scan samples:', data.slice(0, 3).map(d => ({
+                                    scan_id: d.scan_id,
+                                    scan_status: d.scan_status,
+                                    status_label: d.status_label,
+                                    pending_payment: d.pending_payment,
+                                    has_scan_status: !!d.scan_status,
+                                    has_pending_payment: d.pending_payment !== undefined && d.pending_payment !== null
+                                })));
+                                
+                                // Check scan_status distribution in loaded data
+                                // Also check for case sensitivity or property name issues
+                                const statusCounts = {
+                                    successful: data.filter(d => d.scan_status === 'successful').length,
+                                    failed: data.filter(d => d.scan_status === 'failed').length,
+                                    unpaid: data.filter(d => d.scan_status === 'unpaid').length,
+                                    null: data.filter(d => !d.scan_status).length,
+                                    undefined: data.filter(d => d.scan_status === undefined).length,
+                                    // Check all possible property names
+                                    all_keys: data.length > 0 ? Object.keys(data[0]).filter(k => k.toLowerCase().includes('status') || k.toLowerCase().includes('scan')) : [],
+                                    // Check raw values (case-insensitive)
+                                    raw_values: [...new Set(data.map(d => String(d.scan_status || 'NULL').toLowerCase()))]
+                                };
+                                console.log('📊 scan_status distribution in loaded data:', statusCounts);
+                                
+                                // Also log the actual first scan object to see all properties
+                                if (data.length > 0) {
+                                    console.log('📊 Full first scan object (all properties):', data[0]);
+                                    console.log('📊 First scan scan_status value (type, raw):', {
+                                        value: data[0].scan_status,
+                                        type: typeof data[0].scan_status,
+                                        isString: typeof data[0].scan_status === 'string',
+                                        length: data[0].scan_status?.length,
+                                        equals_successful: data[0].scan_status === 'successful',
+                                        equals_failed: data[0].scan_status === 'failed',
+                                        equals_unpaid: data[0].scan_status === 'unpaid'
+                                    });
+                                }
+                            }
+                            break; // Success
+                        }
+                    } catch (err) {
+                        console.warn(`Query attempt failed, ${retries - 1} retries left:`, err);
+                        queryError = err;
+                    }
+                    
+                    retries--;
+                    if (retries > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                    }
+                }
+                
+                if (queryError || !data) {
+                    console.error('Query error after retries:', queryError);
+                    // Try alternative: query scan_results directly
+                    console.log('Trying alternative query...');
+                    const altResult = await supabaseClient
+                        .from('scan_results')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(100);
+                    
+                    if (altResult.error) {
+                        throw new Error(`Connection failed: ${altResult.error.message || queryError?.message || 'Unknown error'}. Make sure the view exists and you have access.`);
+                    }
+                    
+                    // Transform data to match expected format (include scan_status and pending_payment)
+                    data = altResult.data.map(row => ({
+                        scan_id: row.id,
+                        scan_date: row.created_at,
+                        user_identifier: 'User ' + row.user_id.substring(0, 8),
+                        overall_score: row.card_metrics?.overall || 'N/A',
+                        privacy_status: row.allow_data_improvement ? '✅ Opted In' : '⚠️ Opted Out',
+                        front_image_path: row.front_image_path,
+                        scan_status: row.scan_status,  // Include scan_status
+                        pending_payment: row.pending_payment,  // Include pending_payment for fallback
+                        status_label: row.scan_status === 'successful' ? '✅ Successful (Paid)' : 
+                                     row.scan_status === 'failed' ? '❌ Failed' : 
+                                     row.scan_status === 'unpaid' ? '⏳ Unpaid' : '❓ Unknown',
+                        error_message: row.error_message
+                    }));
+                }
+                
+                if (!data || data.length === 0) {
+                    loading.style.display = 'none';
+                    error.innerHTML = `<div class="error">No scan data found. Make sure you have scans in the database and the view is created.</div>`;
+                    return;
+                }
+                
+                allData = data || [];
+                allScanData = data || []; // Store for detail view
+                console.log(`Loaded ${allData.length} scans`);
+                updateStats(allData);
+                renderTable(allData);
+                
+                loading.style.display = 'none';
+                tableContainer.style.display = 'block';
+            } catch (err) {
+                console.error('Load error:', err);
+                loading.style.display = 'none';
+                error.innerHTML = `<div class="error">
+                    <strong>Error loading data:</strong><br>
+                    ${err.message}<br><br>
+                    <strong>Troubleshooting:</strong><br>
+                    1. Make sure you ran CREATE_ALL_VIEWS.sql in Supabase<br>
+                    2. Check browser console (F12) for detailed errors<br>
+                    3. Verify SUPABASE_URL and SUPABASE_ANON_KEY are correct
+                </div>`;
+            }
+        }
+        
+        // Helper function to get Eastern Time boundaries
+        function getEasternTimeBoundaries() {
+            const now = new Date();
+            
+            // Get current date/time components in Eastern Time
+            const etParts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).formatToParts(now);
+            
+            const etYear = parseInt(etParts.find(p => p.type === 'year').value);
+            const etMonth = parseInt(etParts.find(p => p.type === 'month').value);
+            const etDay = parseInt(etParts.find(p => p.type === 'day').value);
+            
+            // Helper: Convert ET date/time to UTC Date object
+            // Reliable method using timezone-aware date construction
+            function etToUTC(year, month, day, hour, minute, second) {
+                // Create a date string in ISO format (this will be interpreted as local, but we'll fix it)
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+                
+                // Method: Create a date, format it in both ET and UTC, calculate offset, then apply
+                // Create a test date (treating the string as if it were UTC)
+                const testDate = new Date(dateStr + 'Z');
+                
+                // Format this date in ET and UTC to see the difference
+                const etFormatted = testDate.toLocaleString('en-US', { 
+                    timeZone: 'America/New_York',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                const utcFormatted = testDate.toLocaleString('en-US', { 
+                    timeZone: 'UTC',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                
+                // Parse both to get timestamps
+                const etTime = new Date(etFormatted.replace(/(\d+)\/(\d+)\/(\d+),?\s+(\d+):(\d+):(\d+)/, '$3-$1-$2T$4:$5:$6')).getTime();
+                const utcTime = new Date(utcFormatted.replace(/(\d+)\/(\d+)\/(\d+),?\s+(\d+):(\d+):(\d+)/, '$3-$1-$2T$4:$5:$6')).getTime();
+                
+                // Calculate offset
+                const offset = utcTime - etTime;
+                
+                // Now create the date we actually want in ET, then convert to UTC
+                const targetET = new Date(year, month - 1, day, hour, minute, second);
+                const targetETStr = targetET.toLocaleString('en-US', { 
+                    timeZone: 'America/New_York',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                const targetETTime = new Date(targetETStr.replace(/(\d+)\/(\d+)\/(\d+),?\s+(\d+):(\d+):(\d+)/, '$3-$1-$2T$4:$5:$6')).getTime();
+                
+                // Apply the offset to get UTC time
+                return new Date(targetETTime + offset);
+            }
+            
+            // Start of today (midnight ET = 00:00:00 ET)
+            const startOfToday = etToUTC(etYear, etMonth, etDay, 0, 0, 0);
+            
+            // End of today (11:59:59 PM ET = 23:59:59 ET)
+            const endOfToday = etToUTC(etYear, etMonth, etDay, 23, 59, 59);
+            
+            // Get day of week (0 = Sunday)
+            const etDateObj = new Date(etYear, etMonth - 1, etDay);
+            const dayOfWeek = etDateObj.getDay();
+            
+            // Start of week (Sunday midnight ET)
+            const weekStartDay = etDay - dayOfWeek;
+            const startOfWeek = etToUTC(etYear, etMonth, weekStartDay, 0, 0, 0);
+            
+            // End of week (Saturday 11:59:59 PM ET)
+            const weekEndDay = weekStartDay + 6;
+            const endOfWeek = etToUTC(etYear, etMonth, weekEndDay, 23, 59, 59);
+            
+            return {
+                todayStart: startOfToday.toISOString(),
+                todayEnd: endOfToday.toISOString(),
+                weekStart: startOfWeek.toISOString(),
+                weekEnd: endOfWeek.toISOString()
+            };
+        }
+        
+        function updateStats(data) {
+            const stats = document.getElementById('stats');
+            const total = data.length;
+            const optedIn = data.filter(d => d.privacy_status === '✅ Opted In' || d.allow_data_improvement === true).length;
+            
+            // Count by scan_status (after migration, all scans should have this)
+            // Also handle legacy data that might not have scan_status yet
+            const successful = data.filter(d => {
+                // Primary: check scan_status
+                if (d.scan_status === 'successful') return true;
+                // Legacy fallback: check pending_payment if scan_status is missing
+                if (!d.scan_status && (d.pending_payment === false || d.pending_payment === null)) return true;
+                return false;
+            }).length;
+            
+            const failed = data.filter(d => d.scan_status === 'failed').length;
+            
+            const unpaid = data.filter(d => {
+                // Primary: check scan_status
+                if (d.scan_status === 'unpaid') return true;
+                // Legacy fallback: check pending_payment if scan_status is missing
+                if (!d.scan_status && d.pending_payment === true) return true;
+                return false;
+            }).length;
+            
+            // Debug: Log detailed stats breakdown
+            const statusBreakdown = {
+                has_scan_status: data.filter(d => d.scan_status).length,
+                no_scan_status: data.filter(d => !d.scan_status).length,
+                successful_count: data.filter(d => d.scan_status === 'successful').length,
+                failed_count: data.filter(d => d.scan_status === 'failed').length,
+                unpaid_count: data.filter(d => d.scan_status === 'unpaid').length,
+                pending_false: data.filter(d => d.pending_payment === false).length,
+                pending_true: data.filter(d => d.pending_payment === true).length,
+                pending_null: data.filter(d => d.pending_payment === null || d.pending_payment === undefined).length
+            };
+            
+            console.log('📊 Stats calculation:', {
+                total,
+                successful,
+                failed,
+                unpaid,
+                statusBreakdown,
+                sample_scan: data[0] ? {
+                    scan_id: data[0].scan_id,
+                    scan_status: data[0].scan_status,
+                    pending_payment: data[0].pending_payment,
+                    status_label: data[0].status_label
+                } : 'No data'
+            });
+            // Calculate average score for successful/unpaid scans (exclude failed)
+            const completedScans = data.filter(d => {
+                // Include if scan_status is successful or unpaid
+                if (d.scan_status === 'successful' || d.scan_status === 'unpaid') return true;
+                // Legacy: include if no scan_status (all old scans were successful/unpaid, not failed)
+                if (!d.scan_status) return true;
+                return false;
+            });
+            const avgScore = completedScans.length > 0
+                ? Math.round(completedScans.reduce((sum, d) => sum + (parseInt(d.overall_score) || 0), 0) / completedScans.length)
+                : 0;
+            
+            // Filter scans by Eastern Time (simpler approach - compare ET-formatted dates)
+            const now = new Date();
+            const todayET = now.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+            
+            // Get today's date components in ET
+            const [todayMonth, todayDay, todayYear] = todayET.split('/').map(Number);
+            
+            // Filter scans for today (compare ET-formatted dates)
+            const scansToday = data.filter(d => {
+                if (!d.scan_date) return false;
+                const scanDate = new Date(d.scan_date);
+                const scanDateET = scanDate.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+                return scanDateET === todayET;
+            });
+            
+            // Filter scans for this week (Sunday to Saturday in ET)
+            // Get current week boundaries in ET
+            const nowETStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' });
+            const nowET = new Date(nowETStr);
+            const nowDayOfWeek = nowET.getDay(); // 0 = Sunday
+            
+            // Start of week (Sunday midnight ET)
+            const weekStartET = new Date(nowET);
+            weekStartET.setDate(nowET.getDate() - nowDayOfWeek);
+            weekStartET.setHours(0, 0, 0, 0);
+            
+            // End of week (Saturday 11:59:59 PM ET)
+            const weekEndET = new Date(weekStartET);
+            weekEndET.setDate(weekStartET.getDate() + 6);
+            weekEndET.setHours(23, 59, 59, 999);
+            
+            const scansThisWeek = data.filter(d => {
+                if (!d.scan_date) return false;
+                const scanDate = new Date(d.scan_date);
+                const scanDateETStr = scanDate.toLocaleString('en-US', { timeZone: 'America/New_York' });
+                const scanDateET = new Date(scanDateETStr);
+                return scanDateET >= weekStartET && scanDateET <= weekEndET;
+            });
+            
+            // Break down weekly scans by type
+            const quickScansThisWeek = scansThisWeek.filter(d => d.scan_mode === 'quick').length;
+            const fullScansThisWeek = scansThisWeek.filter(d => d.scan_mode === 'full').length;
+            
+            stats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Scans</div>
+                    <div class="stat-value">${total}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">✅ Successful</div>
+                    <div class="stat-value" style="color: #10b981;">${successful}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">❌ Failed</div>
+                    <div class="stat-value" style="color: #ef4444;">${failed}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">⏳ Unpaid</div>
+                    <div class="stat-value" style="color: #f59e0b;">${unpaid}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Opted In</div>
+                    <div class="stat-value">${optedIn}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Score</div>
+                    <div class="stat-value">${avgScore}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Today (ET)</div>
+                    <div class="stat-value">${scansToday.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">This Week (ET)</div>
+                    <div class="stat-value">${scansThisWeek.length}</div>
+                    <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                        ${fullScansThisWeek} Full • ${quickScansThisWeek} Quick
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = data.map((row, index) => `
+                <tr class="clickable-row" onclick="showScanDetail('${row.scan_id}')" style="cursor: pointer;">
+                    <td>${formatDate(row.scan_date)}</td>
+                    <td><strong>${row.user_identifier || 'N/A'}</strong></td>
+                    <td>${row.user_email || 'N/A'}</td>
+                    <td style="white-space: nowrap;">
+                        <span style="font-size: 12px;">${(() => {
+                            // Handle status display - check scan_status first, then fallback to pending_payment
+                            if (row.status_label) return row.status_label;
+                            if (row.scan_status === 'successful') return '✅ Successful (Paid)';
+                            if (row.scan_status === 'failed') return '❌ Failed';
+                            if (row.scan_status === 'unpaid') return '⏳ Unpaid';
+                            // Legacy: derive from pending_payment
+                            if (row.pending_payment === false || row.pending_payment === null) return '✅ Successful (Paid)';
+                            if (row.pending_payment === true) return '⏳ Unpaid';
+                            return '❓ Unknown';
+                        })()}</span>
+                        ${row.error_message ? `<br><span style="color: #f59e0b; font-size: 11px;" title="${row.error_message.replace(/'/g, "\\'")}">⚠️ ${row.error_message.substring(0, 30)}${row.error_message.length > 30 ? '...' : ''}</span>` : ''}
+                    </td>
+                    <td class="score"><strong>${row.overall_score || (row.scan_status === 'failed' ? 'N/A' : 'N/A')}</strong></td>
+                    <td>${row.v_taper_score || (row.scan_status === 'failed' ? 'N/A' : 'N/A')}</td>
+                    <td>${row.symmetry_score || (row.scan_status === 'failed' ? 'N/A' : 'N/A')}</td>
+                    <td>${row.definition_score || (row.scan_status === 'failed' ? 'N/A' : 'N/A')}</td>
+                    <td>${row.body_fat_percent || (row.scan_status === 'failed' ? 'N/A' : 'N/A')}</td>
+                    <td class="${row.privacy_status?.includes('✅') ? 'privacy-opted-in' : 'privacy-opted-out'}" style="white-space: nowrap; min-width: 100px;">
+                        ${row.privacy_status || 'N/A'}
+                    </td>
+                    <td>
+                        ${row.front_image_path ? `<a href="#" onclick="event.stopPropagation(); viewImage('${row.front_image_path.replace(/'/g, "\\'")}'); return false;" class="image-link">Front</a>` : 'N/A'}
+                        ${row.back_image_path ? ` | <a href="#" onclick="event.stopPropagation(); viewImage('${row.back_image_path.replace(/'/g, "\\'")}'); return false;" class="image-link">Back</a>` : ''}
+                    </td>
+                    <td style="text-align: center; color: #888;">→</td>
+                </tr>
+            `).join('');
+        }
+        
+        async function loadImage(imgId, loadingId, buttonId, path) {
+            const img = document.getElementById(imgId);
+            const loadingDiv = document.getElementById(loadingId);
+            const button = buttonId ? document.getElementById(buttonId) : null;
+            
+            if (!img || !loadingDiv || !path) {
+                console.warn(`Missing elements for image load: imgId=${imgId}, loadingId=${loadingId}, path=${path}`);
+                return;
+            }
+            
+            // Show loading state
+            img.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Loading...';
+            }
+            
+            try {
+                const signedUrl = await getSignedUrl(path);
+                
+                if (signedUrl) {
+                    img.onload = () => {
+                        img.style.display = 'block';
+                        loadingDiv.style.display = 'none';
+                        if (button) {
+                            button.textContent = 'Reload Image';
+                            button.disabled = false;
+                        }
+                    };
+                    img.onerror = () => {
+                        loadingDiv.textContent = 'Failed to load image';
+                        loadingDiv.style.display = 'block';
+                        if (button) {
+                            button.textContent = 'Try Again';
+                            button.disabled = false;
+                        }
+                    };
+                    img.src = signedUrl;
+                } else {
+                    loadingDiv.textContent = 'Failed to get signed URL';
+                    loadingDiv.style.display = 'block';
+                    if (button) {
+                        button.textContent = 'Try Again';
+                        button.disabled = false;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading image:', err);
+                loadingDiv.textContent = err.message || 'Error loading image';
+                loadingDiv.style.display = 'block';
+                if (button) {
+                    button.textContent = 'Try Again';
+                    button.disabled = false;
+                }
+            }
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch {
+                return dateString;
+            }
+        }
+        
+        function filterTable() {
+            const search = document.getElementById('searchEmail').value.toLowerCase();
+            const privacy = document.getElementById('privacyFilter').value;
+            
+            let filtered = allData.filter(row => {
+                const matchesSearch = !search || 
+                    (row.user_email && row.user_email.toLowerCase().includes(search)) ||
+                    (row.user_identifier && row.user_identifier.toLowerCase().includes(search));
+                
+                const matchesPrivacy = !privacy || row.privacy_status === privacy;
+                
+                return matchesSearch && matchesPrivacy;
+            });
+            
+            renderTable(filtered);
+        }
+        
+        async function viewImage(path) {
+            if (!path) {
+                alert('No image path available');
+                return;
+            }
+            
+            try {
+                // Use edge function to generate signed URL (uses service role key)
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signed-url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ path, expiresIn: 3600 })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok || !result.signedUrl) {
+                    console.error('Error generating signed URL:', result);
+                    alert('Error loading image: ' + (result.error || 'Unknown error'));
+                    return;
+                }
+                
+                // Open image in new tab
+                window.open(result.signedUrl, '_blank');
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Error: ' + err.message);
+            }
+        }
+        
+        async function getSignedUrl(path) {
+            if (!path) return null;
+            
+            try {
+                // Use edge function to generate signed URL (uses service role key)
+                const functionUrl = `${SUPABASE_URL}/functions/v1/get-signed-url`;
+                console.log('🔐 Fetching signed URL from:', functionUrl);
+                console.log('📁 Path:', path);
+                
+                const response = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ path, expiresIn: 3600 })
+                });
+                
+                // Check if response is ok before parsing JSON
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ HTTP Error:', response.status, errorText);
+                    
+                    // Check if function doesn't exist (404)
+                    if (response.status === 404) {
+                        const errorMsg = `⚠️ Edge Function 'get-signed-url' is NOT DEPLOYED.\n\nTo fix this, run:\n\nsupabase functions deploy get-signed-url\n\nOr deploy via Supabase Dashboard → Edge Functions → New Function`;
+                        console.error(errorMsg);
+                        throw new Error(errorMsg);
+                    }
+                    
+                    // Network/CORS errors
+                    if (response.status === 0 || response.type === 'opaque') {
+                        throw new Error(`CORS/Network error. Make sure the edge function is deployed and CORS headers are set correctly.`);
+                    }
+                    
+                    throw new Error(`Failed to get signed URL: ${response.status} ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.signedUrl) {
+                    console.error('❌ Error generating signed URL:', result);
+                    throw new Error(result.error || 'No signed URL returned');
+                }
+                
+                console.log('✅ Signed URL generated successfully');
+                return result.signedUrl;
+            } catch (err) {
+                console.error('❌ Error getting signed URL:', err);
+                
+                // Network errors (failed to fetch)
+                if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                    throw new Error(`Cannot connect to edge function. Make sure 'get-signed-url' is deployed:\n\nsupabase functions deploy get-signed-url`);
+                }
+                
+                // Re-throw with more context
+                if (err.message.includes('404') || err.message.includes('not found') || err.message.includes('NOT DEPLOYED')) {
+                    throw err; // Already has good message
+                }
+                
+                throw new Error(`Failed to fetch image: ${err.message}`);
+            }
+        }
+        
+        function exportCSV() {
+            const data = allData;
+            const headers = ['Date', 'User', 'Email', 'Overall', 'V-Taper', 'Symmetry', 'Definition', 'Body Fat', 'Privacy'];
+            const csv = [
+                headers.join(','),
+                ...data.map(row => [
+                    new Date(row.scan_date).toLocaleDateString(),
+                    `"${row.user_identifier || ''}"`,
+                    `"${row.user_email || ''}"`,
+                    row.overall_score || '',
+                    row.v_taper_score || '',
+                    row.symmetry_score || '',
+                    row.definition_score || '',
+                    row.body_fat_percent || '',
+                    `"${row.privacy_status || ''}"`
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `scans-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+        
+        // Load users list
+        async function loadUsers() {
+            const loading = document.getElementById('usersLoading');
+            const error = document.getElementById('usersError');
+            const container = document.getElementById('usersContainer');
+            
+            loading.style.display = 'block';
+            error.innerHTML = '';
+            container.style.display = 'none';
+            
+            try {
+                // Try to use all_users_with_scan_counts view first (includes users with 0 scans)
+                let usersData, usersError;
+                let retries = 3;
+                
+                while (retries > 0) {
+                    try {
+                        const result = await supabaseClient
+                            .from('all_users_with_scan_counts')
+                            .select('*')
+                            .order('account_created_at', { ascending: false });
+                        
+                        usersData = result.data;
+                        usersError = result.error;
+                        
+                        if (!usersError && usersData) {
+                            break; // Success
+                        }
+                    } catch (err) {
+                        console.warn(`Users query attempt failed, ${retries - 1} retries left:`, err);
+                        usersError = err;
+                    }
+                    
+                    retries--;
+                    if (retries > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+                
+                // Fallback: If view doesn't exist, use admin_scan_dashboard (old method)
+                if (usersError && usersError.message?.includes('does not exist')) {
+                    console.log('⚠️ all_users_with_scan_counts view not found, using fallback method');
+                    
+                    // Fallback to old method (only users with scans)
+                    let scansData, scansError;
+                    retries = 3;
+                    
+                    while (retries > 0) {
+                        try {
+                            const result = await supabaseClient
+                                .from('admin_scan_dashboard')
+                                .select('user_id, user_identifier, user_email, user_name, scan_date')
+                                .order('scan_date', { ascending: false });
+                            
+                            scansData = result.data;
+                            scansError = result.error;
+                            
+                            if (!scansError && scansData) {
+                                break;
+                            }
+                        } catch (err) {
+                            scansError = err;
+                        }
+                        
+                        retries--;
+                        if (retries > 0) {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    }
+                    
+                    if (scansError) {
+                        throw new Error(`Failed to load users: ${scansError.message || 'Unknown error'}`);
+                    }
+                    
+                    // Group by user_id (old method)
+                    const usersMap = {};
+                    scansData?.forEach(scan => {
+                        if (!usersMap[scan.user_id]) {
+                            usersMap[scan.user_id] = {
+                                id: scan.user_id,
+                                email: scan.user_email || scan.user_identifier || 'No email',
+                                name: scan.user_name || scan.user_identifier || 'User',
+                                scan_count: 0,
+                                first_scan: scan.scan_date,
+                                last_scan: scan.scan_date,
+                                account_created_at: scan.scan_date
+                            };
+                        }
+                        usersMap[scan.user_id].scan_count++;
+                        if (new Date(scan.scan_date) > new Date(usersMap[scan.user_id].last_scan)) {
+                            usersMap[scan.user_id].last_scan = scan.scan_date;
+                        }
+                        if (new Date(scan.scan_date) < new Date(usersMap[scan.user_id].first_scan)) {
+                            usersMap[scan.user_id].first_scan = scan.scan_date;
+                            usersMap[scan.user_id].account_created_at = scan.scan_date;
+                        }
+                    });
+                    
+                    allUsers = Object.values(usersMap);
+                } else {
+                    // Use new view data
+                    if (usersError) {
+                        throw new Error(`Failed to load users: ${usersError.message || 'Unknown error'}`);
+                    }
+                    
+                    allUsers = usersData.map(user => ({
+                        id: user.user_id,
+                        email: user.user_email || user.user_identifier || 'No email',
+                        name: user.user_name || user.user_identifier || 'User',
+                        scan_count: user.scan_count || 0,
+                        first_scan: user.first_scan_date,
+                        last_scan: user.last_scan_date,
+                        account_created_at: user.account_created_at,
+                        profile: {
+                            days_per_week: user.days_per_week,
+                            height_cm: user.height_cm,
+                            weight_kg: user.weight_kg,
+                            primary_goal: user.primary_goal,
+                            training_duration: user.training_duration,
+                            available_equipment: user.available_equipment
+                        }
+                    }));
+                }
+                
+                // Sort by last scan (users with scans first), then by account creation
+                allUsers.sort((a, b) => {
+                    if (a.scan_count > 0 && b.scan_count === 0) return -1;
+                    if (a.scan_count === 0 && b.scan_count > 0) return 1;
+                    if (a.last_scan && b.last_scan) {
+                        return new Date(b.last_scan) - new Date(a.last_scan);
+                    }
+                    if (a.account_created_at && b.account_created_at) {
+                        return new Date(b.account_created_at) - new Date(a.account_created_at);
+                    }
+                    return 0;
+                });
+                
+                console.log(`Loaded ${allUsers.length} users (${allUsers.filter(u => u.scan_count === 0).length} with 0 scans)`);
+                renderUsers(allUsers);
+                
+                loading.style.display = 'none';
+                container.style.display = 'block';
+            } catch (err) {
+                console.error('Error loading users:', err);
+                loading.style.display = 'none';
+                error.innerHTML = `<div class="error">Error loading users: ${err.message}<br><br>💡 Tip: Run CREATE_ALL_USERS_VIEW.sql in Supabase to see users with 0 scans</div>`;
+            }
+        }
+        
+        function renderUsers(users) {
+            const container = document.getElementById('usersContainer');
+            if (!users || users.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No users found</div>';
+                return;
+            }
+            
+            container.innerHTML = users.map(user => `
+                <div class="user-card" onclick="showUserDetail('${user.id}')">
+                    <div class="user-card-header">
+                        <div>
+                            <div class="user-name">${escapeHtml(user.name)}</div>
+                            <div class="user-email">${escapeHtml(user.email)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: ${user.scan_count === 0 ? '#888' : '#a855f7'}; font-size: 24px; font-weight: 700;">${user.scan_count}</div>
+                            <div style="color: #888; font-size: 12px;">scans</div>
+                            ${user.scan_count === 0 ? '<div style="color: #f59e0b; font-size: 10px; margin-top: 4px;">No scans yet</div>' : ''}
+                        </div>
+                    </div>
+                    <div class="user-stats" style="${user.scan_count === 0 ? 'opacity: 0.6;' : ''}">
+                        <div class="user-stat">Joined: <strong>${formatDate(user.created_at)}</strong></div>
+                        ${user.profile && user.profile.days_per_week ? `
+                            <div class="user-stat">Days/Week: <strong>${user.profile.days_per_week}</strong></div>
+                        ` : ''}
+                        ${user.profile && user.profile.height_cm ? `
+                            <div class="user-stat">Height: <strong>${user.profile.height_cm}cm</strong></div>
+                        ` : ''}
+                        ${user.profile && user.profile.weight_kg ? `
+                            <div class="user-stat">Weight: <strong>${user.profile.weight_kg}kg</strong></div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function showUserDetail(userId) {
+            currentUserId = userId;
+            
+            // Show user detail screen
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById('user-detail-screen').classList.add('active');
+            
+            const container = document.getElementById('userDetailContainer');
+            container.innerHTML = '<div class="loading">Loading user data...</div>';
+            
+            try {
+                // Try to get user from all_users_with_scan_counts view first (includes users with 0 scans)
+                let userData = null;
+                let accountCreatedAt = null;
+                
+                try {
+                    const { data: allUsersData } = await supabaseClient
+                        .from('all_users_with_scan_counts')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .limit(1);
+                    
+                    if (allUsersData && allUsersData.length > 0) {
+                        userData = allUsersData[0];
+                        accountCreatedAt = userData.account_created_at;
+                    }
+                } catch (viewError) {
+                    console.log('⚠️ all_users_with_scan_counts view not available, using fallback');
+                }
+                
+                // Fallback: Get user info from admin_scan_dashboard (only if user has scans)
+                if (!userData) {
+                    const { data: scanData } = await supabaseClient
+                        .from('admin_scan_dashboard')
+                        .select('user_id, user_identifier, user_email, user_name, scan_date')
+                        .eq('user_id', userId)
+                        .limit(1);
+                    
+                    if (!scanData || scanData.length === 0) {
+                        // User has no scans - try to get from allUsers array (already loaded)
+                        const existingUser = allUsers.find(u => u.id === userId);
+                        if (existingUser) {
+                            userData = {
+                                user_id: existingUser.id,
+                                user_email: existingUser.email,
+                                user_identifier: existingUser.email,
+                                user_name: existingUser.name,
+                                scan_count: existingUser.scan_count || 0,
+                                account_created_at: existingUser.account_created_at
+                            };
+                            accountCreatedAt = existingUser.account_created_at;
+                        } else {
+                            throw new Error('User not found');
+                        }
+                    } else {
+                        // User has scans - use scan data
+                        accountCreatedAt = scanData[0].scan_date;
+                        userData = {
+                            user_id: scanData[0].user_id,
+                            user_email: scanData[0].user_email || scanData[0].user_identifier,
+                            user_identifier: scanData[0].user_identifier,
+                            user_name: scanData[0].user_name || scanData[0].user_identifier,
+                            scan_count: 0 // Will be updated from scans query
+                        };
+                    }
+                }
+                
+                const user = {
+                    id: userId,
+                    email: userData.user_email || userData.user_identifier || 'No email',
+                    name: userData.user_name || userData.user_identifier || 'User',
+                    created_at: accountCreatedAt || userData.account_created_at,
+                    raw_user_meta_data: {}
+                };
+                
+                // Get profile (handle case where profile doesn't exist)
+                let profileData = null;
+                const { data: profileResult, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .maybeSingle(); // Use maybeSingle() instead of single() to handle missing profiles gracefully
+                
+                if (!profileError && profileResult) {
+                    profileData = profileResult;
+                } else if (profileError) {
+                    console.log('Profile query error (user may not have profile):', profileError.message);
+                }
+                
+                // Get all scans for this user (may be empty if user has 0 scans)
+                const { data: scansData, error: scansError } = await supabaseClient
+                    .from('admin_scan_dashboard')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('scan_date', { ascending: false });
+                
+                // Handle case where user has no scans (scansData will be empty array, not an error)
+                if (scansError && !scansError.message?.includes('does not exist')) {
+                    console.warn('Error fetching scans (user may have 0 scans):', scansError);
+                }
+                
+                // If user has no scans, scansData will be empty array - that's OK
+                
+                // Get all splits for this user to get detailed workout plan data (may be empty)
+                let splitsData = [];
+                try {
+                    const { data: splitsResult } = await supabaseClient
+                        .from('splits')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+                    
+                    if (splitsResult) {
+                        splitsData = splitsResult;
+                    }
+                } catch (err) {
+                    console.warn('Error fetching splits:', err);
+                    // Continue with empty splits array
+                }
+                
+                // Create a map of scan_id to split data for easy lookup
+                const splitsMap = {};
+                splitsData?.forEach(split => {
+                    if (split.scan_id) {
+                        splitsMap[split.scan_id] = split;
+                    }
+                });
+                
+                // Render user detail (scansData may be empty array for users with 0 scans)
+                renderUserDetail(user, profileData, scansData, splitsMap);
+                
+                // Auto-load images for all scans after rendering
+                setTimeout(async () => {
+                    try {
+                        await autoLoadAllImages(scansData || []);
+                        // Also auto-load quick scan images
+                        scansData?.forEach((scan, idx) => {
+                            if (scan.scan_mode !== 'full') {
+                                if (scan.front_image_path) {
+                                    setTimeout(() => {
+                                        loadImage(`quick-front-img-${scan.scan_id}`, `quick-front-loading-${scan.scan_id}`, null, scan.front_image_path).catch(err => {
+                                            console.warn(`Failed to load quick scan front image: ${err.message}`);
+                                        });
+                                    }, 1500 + (idx * 300));
+                                }
+                                if (scan.back_image_path) {
+                                    setTimeout(() => {
+                                        loadImage(`quick-back-img-${scan.scan_id}`, `quick-back-loading-${scan.scan_id}`, null, scan.back_image_path).catch(err => {
+                                            console.warn(`Failed to load quick scan back image: ${err.message}`);
+                                        });
+                                    }, 1500 + (idx * 300 + 200));
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        console.error('Error auto-loading images:', err);
+                    }
+                }, 1000); // Delay to ensure DOM is ready and 3-column layout is rendered
+            } catch (err) {
+                console.error('Error loading user detail:', err);
+                container.innerHTML = `<div class="error">Error loading user data: ${err.message}</div>`;
+            }
+        }
+        
+        // Auto-load all images for scans
+        async function autoLoadAllImages(scans) {
+            for (const scan of scans) {
+                if (scan.front_image_path) {
+                    await loadImage(
+                        `front-img-${scan.scan_id}`,
+                        `front-loading-${scan.scan_id}`,
+                        `front-btn-${scan.scan_id}`,
+                        scan.front_image_path
+                    );
+                    // Small delay between images to avoid overwhelming the API
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                if (scan.back_image_path) {
+                    await loadImage(
+                        `back-img-${scan.scan_id}`,
+                        `back-loading-${scan.scan_id}`,
+                        `back-btn-${scan.scan_id}`,
+                        scan.back_image_path
+                    );
+                    // Small delay between images
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+        }
+        
+        // Helper to safely parse JSONB fields (might be string or object)
+        function parseJSONBField(field) {
+            if (!field) return null;
+            if (typeof field === 'object') return field;
+            if (typeof field === 'string') {
+                try {
+                    return JSON.parse(field);
+                } catch {
+                    return null;
+                }
+            }
+            return null;
+        }
+        
+        // Helper functions for body recomp calculations
+        function calculateCalorieDeficit(bodyFat) {
+            const bf = parseFloat(bodyFat);
+            if (bf >= 20) return 500;
+            if (bf >= 15) return 400;
+            if (bf >= 12) return 300;
+            if (bf >= 10) return 250;
+            return 200;
+        }
+        
+        function calculateProteinGrams(weightKg) {
+            const weightLbs = weightKg * 2.20462;
+            return Math.round(weightLbs * 0.9);
+        }
+        
+        function calculateProjections(bodyFat, calorieDeficit, weightKg) {
+            if (!weightKg || weightKg <= 0) return null;
+            
+            const bf = parseFloat(bodyFat);
+            const currentWeightLbs = weightKg * 2.20462;
+            const fatMassLbs = (bf / 100) * currentWeightLbs;
+            const leanMassLbs = currentWeightLbs - fatMassLbs;
+            
+            // 1 lb of fat = ~3,500 calories
+            const weeklyDeficit = calorieDeficit * 7;
+            const weeklyFatLossLbs = weeklyDeficit / 3500;
+            
+            const weeks4 = {
+                lbs: Math.max(0, fatMassLbs - (weeklyFatLossLbs * 4)),
+                bf: 0
+            };
+            const weeks6 = {
+                lbs: Math.max(0, fatMassLbs - (weeklyFatLossLbs * 6)),
+                bf: 0
+            };
+            const weeks8 = {
+                lbs: Math.max(0, fatMassLbs - (weeklyFatLossLbs * 8)),
+                bf: 0
+            };
+            
+            // Calculate new body fat percentages
+            weeks4.bf = ((weeks4.lbs / (currentWeightLbs - (weeklyFatLossLbs * 4))) * 100);
+            weeks6.bf = ((weeks6.lbs / (currentWeightLbs - (weeklyFatLossLbs * 6))) * 100);
+            weeks8.bf = ((weeks8.lbs / (currentWeightLbs - (weeklyFatLossLbs * 8))) * 100);
+            
+            return { weeks4, weeks6, weeks8 };
+        }
+        
+        function formatNumber(num) {
+            if (!num || isNaN(num)) return '0';
+            return num.toFixed(1);
+        }
+        
+        function renderUserDetail(user, profile, scans, splitsMap) {
+            const container = document.getElementById('userDetailContainer');
+            
+            const userEmail = user.email || user.raw_user_meta_data?.email || 'No email';
+            const userName = user.raw_user_meta_data?.full_name || user.raw_user_meta_data?.name || userEmail.split('@')[0];
+            
+            // Check if profile has data before showing profile section
+            const hasProfileData = profile && (
+                profile.days_per_week ||
+                profile.height_cm ||
+                profile.weight_kg ||
+                profile.date_of_birth ||
+                profile.primary_goal ||
+                profile.training_duration ||
+                profile.available_equipment ||
+                profile.confidence_level
+            );
+            
+            container.innerHTML = `
+                <div class="user-profile-section">
+                    <div class="section-title">👤 User Information</div>
+                    <div class="profile-grid">
+                        <div class="data-item">
+                            <div class="data-label">Name</div>
+                            <div class="data-value">${escapeHtml(userName)}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Email</div>
+                            <div class="data-value">${escapeHtml(userEmail)}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">User ID</div>
+                            <div class="data-value" style="font-size: 12px; word-break: break-all;">${user.id}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Account Created</div>
+                            <div class="data-value">${formatDate(user.created_at)}</div>
+                        </div>
+                        ${hasProfileData ? `
+                        <div class="data-item" style="grid-column: 1 / -1; margin-top: 10px; padding-top: 15px; border-top: 1px solid #333;">
+                            <div class="section-title" style="font-size: 16px; margin-bottom: 10px;">📋 Profile Details</div>
+                        </div>
+                        ` : ''}
+                        ${(() => {
+                            // Check if profile has any meaningful data
+                            if (!profile) {
+                                return ''; // Don't show profile section if no profile exists
+                            }
+                            
+                            const hasProfileData = (
+                                profile.days_per_week ||
+                                profile.height_cm ||
+                                profile.weight_kg ||
+                                profile.date_of_birth ||
+                                profile.primary_goal ||
+                                profile.training_duration ||
+                                profile.available_equipment ||
+                                profile.confidence_level ||
+                                profile.obstacles ||
+                                profile.impact_on_life ||
+                                profile.training_clarity ||
+                                profile.workout_plan_value
+                            );
+                            
+                            if (!hasProfileData) {
+                                return ''; // Don't show profile section if no data
+                            }
+                            
+                            return `
+                                ${profile.days_per_week ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Days Per Week</div>
+                                        <div class="data-value">${profile.days_per_week}</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.height_cm ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Height</div>
+                                        <div class="data-value">${profile.height_cm} cm</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.weight_kg ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Weight</div>
+                                        <div class="data-value">${profile.weight_kg} kg</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.date_of_birth ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Date of Birth</div>
+                                        <div class="data-value">${formatDate(profile.date_of_birth)}</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.primary_goal ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Primary Goal</div>
+                                        <div class="data-value">${escapeHtml(profile.primary_goal)}</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.training_duration ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Training Duration</div>
+                                        <div class="data-value">${escapeHtml(profile.training_duration)}</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.available_equipment ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Available Equipment</div>
+                                        <div class="data-value">${escapeHtml(profile.available_equipment)}</div>
+                                    </div>
+                                ` : ''}
+                                ${profile.confidence_level ? `
+                                    <div class="data-item">
+                                        <div class="data-label">Confidence Level</div>
+                                        <div class="data-value">${escapeHtml(profile.confidence_level)}</div>
+                                    </div>
+                                ` : ''}
+                            `;
+                        })()}
+                    </div>
+                </div>
+                
+                <div class="scan-timeline">
+                    <div class="section-title">📊 Scan History (${scans.length} scans)</div>
+                    ${scans.length === 0 ? '<div style="text-align: center; padding: 40px; color: #888;">No scans yet</div>' : ''}
+                    ${scans.map((scan, index) => {
+                        const scanMode = scan.scan_mode || 'full';
+                        const scanModeLabel = scanMode === 'full' ? 'Full' : 'Quick';
+                        const scanModeColor = scanMode === 'full' ? '#a855f7' : '#60a5fa';
+                        const muscleScores = parseJSONBField(scan.all_muscle_scores) || {};
+                        const muscleFeedback = parseJSONBField(scan.all_muscle_feedback) || {};
+                        const isFullScan = scanMode === 'full';
+                        
+                        const split = splitsMap[scan.scan_id] || null;
+                        const splitDays = split ? parseJSONBField(split.days) : null;
+                        const bodyFat = scan.body_fat_percent ? scan.body_fat_percent.replace('%', '') : null;
+                        const weightKg = profile?.weight_kg || null;
+                        const bodyRecompData = bodyFat && weightKg ? (() => {
+                            const deficit = calculateCalorieDeficit(bodyFat);
+                            const protein = calculateProteinGrams(weightKg);
+                            const projections = calculateProjections(bodyFat, deficit, weightKg);
+                            return { deficit, protein, projections };
+                        })() : null;
+                        
+                        return `
+                        <div class="scan-item">
+                            <div class="scan-item-header">
+                                <div>
+                                    <div style="font-weight: 700; color: #a855f7; font-size: 18px;">
+                                        Scan #${scans.length - index} 
+                                        <span style="color: ${scanModeColor}; font-size: 14px; font-weight: 600; margin-left: 8px;">(${scanModeLabel})</span>
+                                    </div>
+                                    <div class="scan-date">${formatDate(scan.scan_date)}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #a855f7;">${scan.overall_score || 'N/A'}</div>
+                                    <div style="color: #888; font-size: 12px;">Overall Score</div>
+                                    ${scan.percentile_rank ? `
+                                        <div style="color: #888; font-size: 11px; margin-top: 4px;">TOP ${scan.percentile_rank}%</div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Three Column Layout for Full Scan Data -->
+                            ${isFullScan ? `
+                            <div class="three-column-layout">
+                                <!-- Column 1: Results Page -->
+                                <div class="column-section">
+                                    <div class="column-title">📊 Results Page</div>
+                                    
+                                    <div style="margin-bottom: 20px;">
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Card Metrics</div>
+                                        <div class="scan-scores">
+                                            <div class="scan-score-item">
+                                                <div class="scan-score-label">V-Taper</div>
+                                                <div class="scan-score-value">${scan.v_taper_score || 'N/A'}</div>
+                                            </div>
+                                            <div class="scan-score-item">
+                                                <div class="scan-score-label">Symmetry</div>
+                                                <div class="scan-score-value">${scan.symmetry_score || 'N/A'}</div>
+                                            </div>
+                                            <div class="scan-score-item">
+                                                <div class="scan-score-label">Definition</div>
+                                                <div class="scan-score-value">${scan.definition_score || 'N/A'}</div>
+                                            </div>
+                                            <div class="scan-score-item">
+                                                <div class="scan-score-label">Proportions</div>
+                                                <div class="scan-score-value">${scan.proportions_score || 'N/A'}</div>
+                                            </div>
+                                            <div class="scan-score-item">
+                                                <div class="scan-score-label">Size</div>
+                                                <div class="scan-score-value">${scan.size_score || scan.potential_score || 'N/A'}</div>
+                                            </div>
+                                            <div class="scan-score-item">
+                                                <div class="scan-score-label">Body Fat</div>
+                                                <div class="scan-score-value">${scan.body_fat_percent || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    ${(muscleScores.shoulders || muscleScores.chest || muscleScores.back) ? `
+                                    <div style="margin-bottom: 20px;">
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Muscle Scores</div>
+                                        <div class="scan-scores">
+                                            ${muscleScores.shoulders ? `<div class="scan-score-item"><div class="scan-score-label">Shoulders</div><div class="scan-score-value">${muscleScores.shoulders}</div></div>` : ''}
+                                            ${muscleScores.chest ? `<div class="scan-score-item"><div class="scan-score-label">Chest</div><div class="scan-score-value">${muscleScores.chest}</div></div>` : ''}
+                                            ${muscleScores.back ? `<div class="scan-score-item"><div class="scan-score-label">Back</div><div class="scan-score-value">${muscleScores.back}</div></div>` : ''}
+                                            ${muscleScores.arms ? `<div class="scan-score-item"><div class="scan-score-label">Arms</div><div class="scan-score-value">${muscleScores.arms}</div></div>` : ''}
+                                            ${muscleScores.core ? `<div class="scan-score-item"><div class="scan-score-label">Core</div><div class="scan-score-value">${muscleScores.core}</div></div>` : ''}
+                                            ${muscleScores.legs ? `<div class="scan-score-item"><div class="scan-score-label">Legs</div><div class="scan-score-value">${muscleScores.legs}</div></div>` : ''}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${(muscleFeedback.shoulders || muscleFeedback.chest || muscleFeedback.back) ? `
+                                    <div>
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Muscle Feedback</div>
+                                        <div style="max-height: 400px; overflow-y: auto;">
+                                            ${muscleFeedback.shoulders ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Shoulders:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.shoulders)}</div></div>` : ''}
+                                            ${muscleFeedback.chest ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Chest:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.chest)}</div></div>` : ''}
+                                            ${muscleFeedback.back ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Back:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.back)}</div></div>` : ''}
+                                            ${muscleFeedback.arms ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Arms:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.arms)}</div></div>` : ''}
+                                            ${muscleFeedback.core ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Core:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.core)}</div></div>` : ''}
+                                            ${muscleFeedback.legs ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Legs:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.legs)}</div></div>` : ''}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                
+                                <!-- Column 2: Split Page -->
+                                <div class="column-section">
+                                    <div class="column-title">🏋️ Split Page</div>
+                                    
+                                    ${scan.workout_summary ? `
+                                    <div style="margin-bottom: 15px;">
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Workout Summary</div>
+                                        <div style="color: #fff; font-size: 13px; line-height: 1.6; padding: 12px; background: #0f0f0f; border-radius: 6px; border: 1px solid #333;">${escapeHtml(scan.workout_summary)}</div>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${scan.workout_focus ? `
+                                    <div style="margin-bottom: 15px;">
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Focus</div>
+                                        <div style="color: #fff; font-size: 13px; line-height: 1.6; padding: 12px; background: #0f0f0f; border-radius: 6px; border: 1px solid #333;">${escapeHtml(scan.workout_focus)}</div>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${scan.rest_days !== null && scan.rest_days !== undefined ? `
+                                    <div style="margin-bottom: 15px;">
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Rest Days</div>
+                                        <div style="color: #fff; font-size: 16px; font-weight: 600;">${scan.rest_days} day${scan.rest_days !== 1 ? 's' : ''} per week</div>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${bodyRecompData ? `
+                                    <div style="margin-top: 20px; padding: 15px; background: #0f0f0f; border-radius: 8px; border: 1px solid #333;">
+                                        <div style="color: #a855f7; font-weight: 700; font-size: 16px; margin-bottom: 12px;">🎯 Body Composition Focus</div>
+                                        <div style="color: #888; font-size: 13px; margin-bottom: 15px;">Current: ${scan.body_fat_percent} (Target: 8-9%)</div>
+                                        
+                                        <div style="margin-bottom: 15px;">
+                                            <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">📉 Nutrition:</div>
+                                            <div style="color: #fff; font-size: 13px; line-height: 1.8;">
+                                                <div>• Calorie deficit: ${bodyRecompData.deficit} cal/day</div>
+                                                <div>• Protein: ${bodyRecompData.protein}g per day</div>
+                                                <div>• Focus on whole foods</div>
+                                            </div>
+                                        </div>
+                                        
+                                        ${bodyRecompData.projections ? `
+                                        <div>
+                                            <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">📊 Estimated Projections:</div>
+                                            <div style="color: #fff; font-size: 13px; line-height: 1.8;">
+                                                <div>• 4 weeks: ~${formatNumber(bodyRecompData.projections.weeks4.lbs)} lbs → ~${formatNumber(bodyRecompData.projections.weeks4.bf)}% BF</div>
+                                                <div>• 6 weeks: ~${formatNumber(bodyRecompData.projections.weeks6.lbs)} lbs → ~${formatNumber(bodyRecompData.projections.weeks6.bf)}% BF</div>
+                                                <div>• 8 weeks: ~${formatNumber(bodyRecompData.projections.weeks8.lbs)} lbs → ~${formatNumber(bodyRecompData.projections.weeks8.bf)}% BF</div>
+                                            </div>
+                                        </div>
+                                        ` : ''}
+                                        
+                                        ${parseFloat(bodyFat) > 15 ? `
+                                        <div style="margin-top: 15px;">
+                                            <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">🏃 Cardio:</div>
+                                            <div style="color: #fff; font-size: 13px;">• 3-4 sessions/week (20-30 min)</div>
+                                        </div>
+                                        ` : parseFloat(bodyFat) > 12 ? `
+                                        <div style="margin-top: 15px;">
+                                            <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">🏃 Cardio:</div>
+                                            <div style="color: #fff; font-size: 13px;">• 2-3 sessions/week (15-20 min)</div>
+                                        </div>
+                                        ` : `
+                                        <div style="margin-top: 15px;">
+                                            <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">🏃 Cardio:</div>
+                                            <div style="color: #fff; font-size: 13px;">• 1-2 sessions/week (10-15 min) - maintenance</div>
+                                        </div>
+                                        `}
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${splitDays ? `
+                                    <div style="margin-top: 20px;">
+                                        <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Workout Days</div>
+                                        <div style="max-height: 300px; overflow-y: auto;">
+                                            ${splitDays.map((day, dayIndex) => {
+                                                if (day.is_rest_day) {
+                                                    return `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333; color: #888; font-size: 12px;">Day ${day.day || dayIndex + 1}: Rest Day</div>`;
+                                                } else {
+                                                    const exercises = day.exercises || [];
+                                                    return `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;">
+                                                        <div style="color: #a855f7; font-weight: 600; font-size: 12px; margin-bottom: 6px;">Day ${day.day || dayIndex + 1}</div>
+                                                        ${exercises.map(ex => `<div style="color: #fff; font-size: 11px; margin-left: 8px; margin-bottom: 4px;">• ${ex.name || ex.muscle} - ${ex.sets || 'N/A'} sets × ${ex.reps || 'N/A'}</div>`).join('')}
+                                                    </div>`;
+                                                }
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                
+                                <!-- Column 3: Images -->
+                                <div class="column-section">
+                                    <div class="column-title">📸 Images</div>
+                                    
+                                    ${scan.front_image_path ? `
+                                    <div style="margin-bottom: 20px;">
+                                        <button onclick="viewImage('${scan.front_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Front</button>
+                                        <div id="front-loading-${scan.scan_id}" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                        <img id="front-img-${scan.scan_id}" src="" alt="Front" style="width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                        <div id="front-error-${scan.scan_id}" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                                    </div>
+                                    ` : '<div style="color: #888; text-align: center; padding: 20px;">No front image</div>'}
+                                    
+                                    ${scan.back_image_path ? `
+                                    <div>
+                                        <button onclick="viewImage('${scan.back_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Back</button>
+                                        <div id="back-loading-${scan.scan_id}" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                        <img id="back-img-${scan.scan_id}" src="" alt="Back" style="width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                        <div id="back-error-${scan.scan_id}" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                                    </div>
+                                    ` : '<div style="color: #888; text-align: center; padding: 20px;">No back image</div>'}
+                                    
+                                    <div style="margin-top: 15px; padding: 10px; background: #0f0f0f; border-radius: 6px; font-size: 12px;">
+                                        <div style="color: #888; margin-bottom: 5px;">Scan Mode: <strong style="color: #fff;">${scan.scan_mode || 'N/A'}</strong></div>
+                                        <div style="color: #888;">Privacy: <strong style="color: ${scan.privacy_status?.includes('✅') ? '#10b981' : '#f59e0b'}">${scan.privacy_status || 'N/A'}</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : `
+                            <!-- Quick Scan - Two Column Layout -->
+                            <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <!-- Left: Scores -->
+                                <div class="column-section">
+                                    <div class="column-title">📊 Quick Scan Results</div>
+                                    <div class="scan-scores">
+                                        <div class="scan-score-item">
+                                            <div class="scan-score-label">V-Taper</div>
+                                            <div class="scan-score-value">${scan.v_taper_score || 'N/A'}</div>
+                                        </div>
+                                        <div class="scan-score-item">
+                                            <div class="scan-score-label">Symmetry</div>
+                                            <div class="scan-score-value">${scan.symmetry_score || 'N/A'}</div>
+                                        </div>
+                                        <div class="scan-score-item">
+                                            <div class="scan-score-label">Definition</div>
+                                            <div class="scan-score-value">${scan.definition_score || 'N/A'}</div>
+                                        </div>
+                                        <div class="scan-score-item">
+                                            <div class="scan-score-label">Proportions</div>
+                                            <div class="scan-score-value">${scan.proportions_score || 'N/A'}</div>
+                                        </div>
+                                        <div class="scan-score-item">
+                                                <div class="scan-score-label">Size</div>
+                                                <div class="scan-score-value">${scan.size_score || scan.potential_score || 'N/A'}</div>
+                                        </div>
+                                        <div class="scan-score-item">
+                                            <div class="scan-score-label">Body Fat</div>
+                                            <div class="scan-score-value">${scan.body_fat_percent || 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right: Images -->
+                                <div class="column-section">
+                                    <div class="column-title">📸 Images</div>
+                                    
+                                    ${scan.front_image_path ? `
+                                    <div style="margin-bottom: 20px;">
+                                        <button onclick="viewImage('${scan.front_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Front</button>
+                                        <div id="quick-front-loading-${scan.scan_id}" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                        <img id="quick-front-img-${scan.scan_id}" src="" alt="Front" style="width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                        <div id="quick-front-error-${scan.scan_id}" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                                    </div>
+                                    ` : '<div style="color: #888; text-align: center; padding: 20px;">No front image</div>'}
+                                    
+                                    ${scan.back_image_path ? `
+                                    <div>
+                                        <button onclick="viewImage('${scan.back_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Back</button>
+                                        <div id="quick-back-loading-${scan.scan_id}" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                        <img id="quick-back-img-${scan.scan_id}" src="" alt="Back" style="width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                        <div id="quick-back-error-${scan.scan_id}" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                                    </div>
+                                    ` : '<div style="color: #888; text-align: center; padding: 20px;">No back image</div>'}
+                                    
+                                    <div style="margin-top: 15px; padding: 10px; background: #0f0f0f; border-radius: 6px; font-size: 12px;">
+                                        <div style="color: #888; margin-bottom: 5px;">Scan Mode: <strong style="color: #fff;">${scan.scan_mode || 'N/A'}</strong></div>
+                                        <div style="color: #888;">Privacy: <strong style="color: ${scan.privacy_status?.includes('✅') ? '#10b981' : '#f59e0b'}">${scan.privacy_status || 'N/A'}</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                            `}
+                        </div>
+                    `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        function filterUsers() {
+            const searchTerm = document.getElementById('searchUsers').value.toLowerCase();
+            const filtered = allUsers.filter(user => 
+                user.email.toLowerCase().includes(searchTerm) ||
+                user.name.toLowerCase().includes(searchTerm)
+            );
+            renderUsers(filtered);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Store all scan data for detail view
+        let allScanData = [];
+        
+        // Show scan detail page
+        async function showScanDetail(scanId) {
+            // Find scan data
+            const scan = allScanData.find(s => s.scan_id === scanId || s.id === scanId);
+            
+            if (!scan) {
+                // Try to fetch from database
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('admin_scan_dashboard')
+                        .select('*')
+                        .eq('scan_id', scanId)
+                        .maybeSingle();
+                    
+                    if (error || !data) {
+                        alert('Scan not found');
+                        return;
+                    }
+                    
+                    renderScanDetail(data);
+                } catch (err) {
+                    alert('Error loading scan: ' + err.message);
+                    return;
+                }
+            } else {
+                renderScanDetail(scan);
+            }
+        }
+        
+        function renderScanDetail(scan) {
+            // Show scan detail screen
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById('scan-detail-screen').classList.add('active');
+            
+            const container = document.getElementById('scanDetailContainer');
+            container.innerHTML = '<div class="loading">Loading scan details...</div>';
+            
+            // Parse JSONB fields
+            const muscleScores = parseJSONBField(scan.all_muscle_scores) || {};
+            const muscleFeedback = parseJSONBField(scan.all_muscle_feedback) || {};
+            const scanMode = scan.scan_mode || 'full';
+            const isFullScan = scanMode === 'full';
+            
+            // Get split data if available
+            let splitDays = null;
+            if (scan.scan_id) {
+                // Try to get split data (we'll need to fetch it)
+                // For now, we'll render without it and can enhance later
+            }
+            
+            // Get profile for body recomp calculations
+            const bodyFat = scan.body_fat_percent ? scan.body_fat_percent.replace('%', '') : null;
+            // Note: We'd need to fetch profile separately for weight, but for now we'll show what we have
+            
+            container.innerHTML = `
+                <div class="scan-item">
+                    <div class="scan-item-header">
+                        <div>
+                            <div style="font-weight: 700; color: #a855f7; font-size: 24px;">
+                                Scan Details
+                                <span style="color: ${scanMode === 'full' ? '#a855f7' : '#60a5fa'}; font-size: 16px; font-weight: 600; margin-left: 8px;">
+                                    (${scanMode === 'full' ? 'Full' : 'Quick'})
+                                </span>
+                            </div>
+                            <div class="scan-date">${formatDate(scan.scan_date)}</div>
+                            <div style="color: #888; font-size: 14px; margin-top: 5px;">
+                                User: ${scan.user_identifier || scan.user_email || 'N/A'}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 32px; font-weight: 700; color: #a855f7;">${scan.overall_score || 'N/A'}</div>
+                            <div style="color: #888; font-size: 14px;">Overall Score</div>
+                            ${scan.percentile_rank ? `
+                                <div style="color: #888; font-size: 12px; margin-top: 4px;">TOP ${scan.percentile_rank}%</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    ${isFullScan ? `
+                    <div class="three-column-layout">
+                        <!-- Column 1: Results Page -->
+                        <div class="column-section">
+                            <div class="column-title">📊 Results Page</div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Card Metrics</div>
+                                <div class="scan-scores">
+                                    <div class="scan-score-item">
+                                        <div class="scan-score-label">V-Taper</div>
+                                        <div class="scan-score-value">${scan.v_taper_score || 'N/A'}</div>
+                                    </div>
+                                    <div class="scan-score-item">
+                                        <div class="scan-score-label">Symmetry</div>
+                                        <div class="scan-score-value">${scan.symmetry_score || 'N/A'}</div>
+                                    </div>
+                                    <div class="scan-score-item">
+                                        <div class="scan-score-label">Definition</div>
+                                        <div class="scan-score-value">${scan.definition_score || 'N/A'}</div>
+                                    </div>
+                                    <div class="scan-score-item">
+                                        <div class="scan-score-label">Proportions</div>
+                                        <div class="scan-score-value">${scan.proportions_score || 'N/A'}</div>
+                                    </div>
+                                    <div class="scan-score-item">
+                                                <div class="scan-score-label">Size</div>
+                                                <div class="scan-score-value">${scan.size_score || scan.potential_score || 'N/A'}</div>
+                                    </div>
+                                    <div class="scan-score-item">
+                                        <div class="scan-score-label">Body Fat</div>
+                                        <div class="scan-score-value">${scan.body_fat_percent || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${(muscleScores.shoulders || muscleScores.chest || muscleScores.back) ? `
+                            <div style="margin-bottom: 20px;">
+                                <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Muscle Scores</div>
+                                <div class="scan-scores">
+                                    ${muscleScores.shoulders ? `<div class="scan-score-item"><div class="scan-score-label">Shoulders</div><div class="scan-score-value">${muscleScores.shoulders}</div></div>` : ''}
+                                    ${muscleScores.chest ? `<div class="scan-score-item"><div class="scan-score-label">Chest</div><div class="scan-score-value">${muscleScores.chest}</div></div>` : ''}
+                                    ${muscleScores.back ? `<div class="scan-score-item"><div class="scan-score-label">Back</div><div class="scan-score-value">${muscleScores.back}</div></div>` : ''}
+                                    ${muscleScores.arms ? `<div class="scan-score-item"><div class="scan-score-label">Arms</div><div class="scan-score-value">${muscleScores.arms}</div></div>` : ''}
+                                    ${muscleScores.core ? `<div class="scan-score-item"><div class="scan-score-label">Core</div><div class="scan-score-value">${muscleScores.core}</div></div>` : ''}
+                                    ${muscleScores.legs ? `<div class="scan-score-item"><div class="scan-score-label">Legs</div><div class="scan-score-value">${muscleScores.legs}</div></div>` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${(muscleFeedback.shoulders || muscleFeedback.chest || muscleFeedback.back) ? `
+                            <div>
+                                <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 10px;">Muscle Feedback</div>
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    ${muscleFeedback.shoulders ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Shoulders:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.shoulders)}</div></div>` : ''}
+                                    ${muscleFeedback.chest ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Chest:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.chest)}</div></div>` : ''}
+                                    ${muscleFeedback.back ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Back:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.back)}</div></div>` : ''}
+                                    ${muscleFeedback.arms ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Arms:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.arms)}</div></div>` : ''}
+                                    ${muscleFeedback.core ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Core:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.core)}</div></div>` : ''}
+                                    ${muscleFeedback.legs ? `<div style="padding: 10px; background: #0f0f0f; border-radius: 6px; margin-bottom: 8px; border: 1px solid #333;"><div style="color: #a855f7; font-weight: 600; font-size: 11px; margin-bottom: 4px;">Legs:</div><div style="color: #fff; font-size: 12px; line-height: 1.4;">${escapeHtml(muscleFeedback.legs)}</div></div>` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Column 2: Split Page -->
+                        <div class="column-section">
+                            <div class="column-title">🏋️ Split Page</div>
+                            
+                            ${scan.workout_summary ? `
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Workout Summary</div>
+                                <div style="color: #fff; font-size: 13px; line-height: 1.6; padding: 12px; background: #0f0f0f; border-radius: 6px; border: 1px solid #333;">${escapeHtml(scan.workout_summary)}</div>
+                            </div>
+                            ` : ''}
+                            
+                            ${scan.workout_focus ? `
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Focus</div>
+                                <div style="color: #fff; font-size: 13px; line-height: 1.6; padding: 12px; background: #0f0f0f; border-radius: 6px; border: 1px solid #333;">${escapeHtml(scan.workout_focus)}</div>
+                            </div>
+                            ` : ''}
+                            
+                            ${scan.rest_days !== null && scan.rest_days !== undefined ? `
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: #a855f7; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Rest Days</div>
+                                <div style="color: #fff; font-size: 16px; font-weight: 600;">${scan.rest_days} day${scan.rest_days !== 1 ? 's' : ''} per week</div>
+                            </div>
+                            ` : ''}
+                            
+                            <div style="color: #888; font-size: 13px; padding: 15px; background: #0f0f0f; border-radius: 6px; border: 1px solid #333;">
+                                Body recomp data requires user profile weight. View user detail page for full body recomp card.
+                            </div>
+                        </div>
+                        
+                        <!-- Column 3: Images -->
+                        <div class="column-section">
+                            <div class="column-title">📸 Images</div>
+                            
+                            ${scan.front_image_path ? `
+                            <div style="margin-bottom: 20px;">
+                                <button onclick="viewImage('${scan.front_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Front</button>
+                                <div id="scan-front-loading" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                <img id="scan-front-img" src="" alt="Front" style="width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                <div id="scan-front-error" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                            </div>
+                            ` : '<div style="color: #888; text-align: center; padding: 20px;">No front image</div>'}
+                            
+                            ${scan.back_image_path ? `
+                            <div>
+                                <button onclick="viewImage('${scan.back_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Back</button>
+                                <div id="scan-back-loading" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                <img id="scan-back-img" src="" alt="Back" style="width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                <div id="scan-back-error" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                            </div>
+                            ` : '<div style="color: #888; text-align: center; padding: 20px;">No back image</div>'}
+                            
+                            <div style="margin-top: 15px; padding: 10px; background: #0f0f0f; border-radius: 6px; font-size: 12px;">
+                                <div style="color: #888; margin-bottom: 5px;">Scan Mode: <strong style="color: #fff;">${scan.scan_mode || 'N/A'}</strong></div>
+                                <div style="color: #888;">Privacy: <strong style="color: ${scan.privacy_status?.includes('✅') ? '#10b981' : '#f59e0b'}">${scan.privacy_status || 'N/A'}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <!-- Quick Scan - Two Column Layout -->
+                    <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <!-- Left: Scores -->
+                        <div class="column-section">
+                            <div class="column-title">📊 Quick Scan Results</div>
+                            <div class="scan-scores">
+                                <div class="scan-score-item">
+                                    <div class="scan-score-label">V-Taper</div>
+                                    <div class="scan-score-value">${scan.v_taper_score || 'N/A'}</div>
+                                </div>
+                                <div class="scan-score-item">
+                                    <div class="scan-score-label">Symmetry</div>
+                                    <div class="scan-score-value">${scan.symmetry_score || 'N/A'}</div>
+                                </div>
+                                <div class="scan-score-item">
+                                    <div class="scan-score-label">Definition</div>
+                                    <div class="scan-score-value">${scan.definition_score || 'N/A'}</div>
+                                </div>
+                                <div class="scan-score-item">
+                                    <div class="scan-score-label">Proportions</div>
+                                    <div class="scan-score-value">${scan.proportions_score || 'N/A'}</div>
+                                </div>
+                                <div class="scan-score-item">
+                                                <div class="scan-score-label">Size</div>
+                                                <div class="scan-score-value">${scan.size_score || scan.potential_score || 'N/A'}</div>
+                                </div>
+                                <div class="scan-score-item">
+                                    <div class="scan-score-label">Body Fat</div>
+                                    <div class="scan-score-value">${scan.body_fat_percent || 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Images -->
+                        <div class="column-section">
+                            <div class="column-title">📸 Images</div>
+                            
+                            ${scan.front_image_path ? `
+                            <div style="margin-bottom: 20px;">
+                                <button onclick="viewImage('${scan.front_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Front</button>
+                                <div id="scan-detail-front-loading" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                <img id="scan-detail-front-img" src="" alt="Front" style="width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                <div id="scan-detail-front-error" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                            </div>
+                            ` : '<div style="color: #888; text-align: center; padding: 20px;">No front image</div>'}
+                            
+                            ${scan.back_image_path ? `
+                            <div>
+                                <button onclick="viewImage('${scan.back_image_path.replace(/'/g, "\\'")}')" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 10px;">View Back</button>
+                                <div id="scan-detail-back-loading" style="display: none; color: #888; font-size: 12px; margin-bottom: 5px; text-align: center;">Loading...</div>
+                                <img id="scan-detail-back-img" src="" alt="Back" style="width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #333; display: none; object-fit: contain;">
+                                <div id="scan-detail-back-error" style="display: none; color: #f44; font-size: 12px; text-align: center;">Failed to load</div>
+                            </div>
+                            ` : '<div style="color: #888; text-align: center; padding: 20px;">No back image</div>'}
+                            
+                            <div style="margin-top: 15px; padding: 10px; background: #0f0f0f; border-radius: 6px; font-size: 12px;">
+                                <div style="color: #888; margin-bottom: 5px;">Scan Mode: <strong style="color: #fff;">${scan.scan_mode || 'N/A'}</strong></div>
+                                <div style="color: #888;">Privacy: <strong style="color: ${scan.privacy_status?.includes('✅') ? '#10b981' : '#f59e0b'}">${scan.privacy_status || 'N/A'}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            `;
+            
+            // Auto-load images
+            setTimeout(() => {
+                if (scan.front_image_path) {
+                    if (isFullScan) {
+                        loadImage('scan-front-img', 'scan-front-loading', null, scan.front_image_path);
+                    } else {
+                        loadImage('scan-detail-front-img', 'scan-detail-front-loading', null, scan.front_image_path);
+                    }
+                }
+                if (scan.back_image_path) {
+                    setTimeout(() => {
+                        if (isFullScan) {
+                            loadImage('scan-back-img', 'scan-back-loading', null, scan.back_image_path);
+                        } else {
+                            loadImage('scan-detail-back-img', 'scan-detail-back-loading', null, scan.back_image_path);
+                        }
+                    }, 200);
+                }
+            }, 500);
+        }
+        
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUsers(); // Changed to load users by default
+        });
+    </script>
+    
+    <!-- Card Generator Screen -->
+    <div id="card-generator-screen" class="screen">
+        <h2>🎨 Custom Card Generator</h2>
+        <p style="color: #888; margin-bottom: 30px;">Create custom ratings cards with your own scores and images</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px;">
+            <!-- Input Form -->
+            <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                <h3 style="margin-bottom: 20px; color: #a855f7;">Card Settings</h3>
+                
+                <div style="display: grid; gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 14px;">Overall Score</label>
+                        <input type="number" id="card-overall" min="0" max="100" placeholder="Auto-calculated" style="width: 100%; padding: 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 8px; color: #fff;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 14px;">Size</label>
+                        <input type="number" id="card-size" min="0" max="100" value="80" style="width: 100%; padding: 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 8px; color: #fff;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 14px;">V-Taper</label>
+                        <input type="number" id="card-vtaper" min="0" max="100" value="72" style="width: 100%; padding: 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 8px; color: #fff;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 14px;">Symmetry</label>
+                        <input type="number" id="card-symmetry" min="0" max="100" value="85" style="width: 100%; padding: 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 8px; color: #fff;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 14px;">Definition</label>
+                        <input type="number" id="card-definition" min="0" max="100" value="68" style="width: 100%; padding: 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 8px; color: #fff;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 14px;">Proportions</label>
+                        <input type="number" id="card-proportions" min="0" max="100" value="78" style="width: 100%; padding: 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 8px; color: #fff;">
+                    </div>
+                    
+                    <div>
+                        <input type="file" id="card-photo" accept="image/*" style="display: none;">
+                        <button type="button" onclick="document.getElementById('card-photo').click()" onmouseover="this.style.borderColor='#a855f7'; this.style.background='#1f1f1f';" onmouseout="this.style.borderColor='#333'; this.style.background='#1a1a1a';" style="width: 100%; padding: 40px 20px; background: #1a1a1a; border: 2px dashed #333; border-radius: 12px; color: #888; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                            <span style="font-size: 32px;">📷</span>
+                            <span>Click to Upload Photo</span>
+                            <span id="photo-filename" style="font-size: 12px; color: #666; margin-top: 4px;"></span>
+                        </button>
+                    </div>
+                    
+                    <button onclick="generateCard()" style="width: 100%; padding: 15px; background: #a855f7; border: none; border-radius: 8px; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px;">
+                        Generate Card
+                    </button>
+                    
+                    <button onclick="downloadCard()" id="download-btn" style="width: 100%; padding: 15px; background: #10b981; border: none; border-radius: 8px; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; display: none;">
+                        Download Card (PNG)
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Preview -->
+            <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; overflow: visible;">
+                <h3 style="margin-bottom: 20px; color: #a855f7;">Preview</h3>
+                <div id="card-preview" style="display: flex; justify-content: center; align-items: center; min-height: 700px; padding: 20px; background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 10px, #0f0f0f 10px, #0f0f0f 20px); border-radius: 8px; overflow: visible; position: relative;">
+                    <p style="color: #888;">Card preview will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let cardCanvas = null;
+        let cardImageData = null;
+        
+        // Calculate overall score from other metrics (all weighted equally at 20% each)
+        function calculateOverallScore() {
+            const size = parseFloat(document.getElementById('card-size').value) || 0;
+            const vtaper = parseFloat(document.getElementById('card-vtaper').value) || 0;
+            const symmetry = parseFloat(document.getElementById('card-symmetry').value) || 0;
+            const definition = parseFloat(document.getElementById('card-definition').value) || 0;
+            const proportions = parseFloat(document.getElementById('card-proportions').value) || 0;
+            
+            // All metrics weighted equally at 20% each (matching app's scoring system)
+            const overall = Math.round(
+                (size * 0.20) +
+                (vtaper * 0.20) +
+                (symmetry * 0.20) +
+                (definition * 0.20) +
+                (proportions * 0.20)
+            );
+            
+            return overall;
+        }
+        
+        // Update filename when file is selected
+        document.addEventListener('DOMContentLoaded', function() {
+            const photoInput = document.getElementById('card-photo');
+            const filenameDisplay = document.getElementById('photo-filename');
+            if (photoInput && filenameDisplay) {
+                photoInput.addEventListener('change', function(e) {
+                    if (e.target.files && e.target.files[0]) {
+                        filenameDisplay.textContent = e.target.files[0].name;
+                    } else {
+                        filenameDisplay.textContent = '';
+                    }
+                });
+            }
+        });
+        
+        function generateCard() {
+            try {
+                console.log('Generate card button clicked');
+                
+                // Get overall - if empty, calculate it; otherwise use the entered value
+                const overallInput = document.getElementById('card-overall');
+                const overallValue = overallInput.value.trim();
+                let overall;
+                
+                // If overall field is empty, calculate it from other metrics (but don't update the field)
+                if (overallValue === '' || overallValue === '0' || isNaN(parseInt(overallValue))) {
+                    overall = calculateOverallScore();
+                    console.log('Overall score calculated from metrics:', overall);
+                } else {
+                    overall = parseInt(overallValue);
+                    console.log('Overall score manually set:', overall);
+                }
+                
+                const size = parseInt(document.getElementById('card-size').value) || 0;
+                const vtaper = parseInt(document.getElementById('card-vtaper').value) || 0;
+                const symmetry = parseInt(document.getElementById('card-symmetry').value) || 0;
+                const definition = parseInt(document.getElementById('card-definition').value) || 0;
+                const proportions = parseInt(document.getElementById('card-proportions').value) || 0;
+                const photoInput = document.getElementById('card-photo');
+                
+                console.log('Scores:', { overall, size, vtaper, symmetry, definition, proportions });
+                
+                if (!photoInput) {
+                    throw new Error('Photo input element not found');
+                }
+                
+                if (!photoInput.files || !photoInput.files[0]) {
+                    alert('Please upload a photo');
+                    return;
+                }
+                
+                const file = photoInput.files[0];
+                
+                // Update filename display
+                const filenameDisplay = document.getElementById('photo-filename');
+                if (filenameDisplay) {
+                    filenameDisplay.textContent = file.name;
+                }
+                console.log('Photo file:', file.name, file.size, 'bytes');
+                
+                const reader = new FileReader();
+                
+                reader.onerror = function() {
+                    console.error('FileReader error');
+                    alert('Error reading photo file');
+                };
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onerror = function() {
+                        console.error('Image load error');
+                        alert('Error loading image');
+                    };
+                    img.onload = function() {
+                        console.log('Image loaded:', img.width, 'x', img.height);
+                        renderCard(img, overall, size, vtaper, symmetry, definition, proportions);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('Error in generateCard:', error);
+                alert('Error: ' + error.message + '\n\nCheck console (F12) for details');
+            }
+        }
+        
+        function renderCard(photoImg, overall, size, vtaper, symmetry, definition, proportions) {
+            try {
+                console.log('Starting card render...');
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                if (!ctx) {
+                    throw new Error('Could not get 2D context from canvas');
+                }
+                
+                // Card dimensions (matching app EXACTLY: 320px width for quick scan)
+                const cardWidth = 320; // App uses 320px for quick scan
+                const scale = 3; // High DPI for quality
+                
+                // Calculate card height: topPadding + metricsTopPadding + (3 rows * metricHeight) + rowSpacing + watermark + bottomPadding
+                // Matching app exactly: quick scan uses .padding(.top, 16) for metrics VStack, .padding(.top, 20) and .padding(.bottom, 28) for watermark
+                const topPadding = 62; // Space for bubble overlap
+                const metricsTopPadding = 16; // Matching app's .padding(.top, 16) for metrics VStack
+                const metricContentHeight = 58; // Matching app's UnifiedMetric .frame(height: 58)
+                const metricTotalHeight = metricContentHeight + 16; // 8px top + 8px bottom padding (from .padding(.vertical, 8))
+                const rowSpacing = 20; // Matching app's VStack spacing for quick scan
+                const watermarkTopPadding = 20; // Matching app's .padding(.top, 20) for watermark
+                const watermarkHeight = 16; // Font size
+                const watermarkBottomPadding = 28; // Matching app's .padding(.bottom, 28) for watermark
+                
+                const cardHeight = topPadding + 
+                    metricsTopPadding + 
+                    (3 * metricTotalHeight) + (2 * rowSpacing) + 
+                    watermarkTopPadding + watermarkHeight + watermarkBottomPadding;
+                
+                // Bubble extends -123px above card, so we need extra canvas space
+                // Bubble is 185px diameter, center at -123 + 92.5 = -30.5px from card top
+                // Bubble top is at -123px from card top
+                const bubbleTopOffset = 123; // Space needed above card for bubble
+                const canvasTopPadding = bubbleTopOffset + 20; // Extra padding for visual spacing
+                
+                console.log('Card dimensions:', cardWidth, 'x', cardHeight);
+                console.log('Bubble extends', bubbleTopOffset, 'px above card');
+                
+                // Canvas needs to be taller to include the bubble
+                canvas.width = cardWidth * scale;
+                canvas.height = (cardHeight + canvasTopPadding) * scale;
+                
+                // Scale context for high DPI
+                ctx.scale(scale, scale);
+                
+                // Clear entire canvas with transparent background (before translation)
+                ctx.clearRect(0, 0, cardWidth, cardHeight + canvasTopPadding);
+                
+                // Translate context down to make room for bubble at top
+                ctx.translate(0, canvasTopPadding);
+                
+                // Helper function to get color for score (matching app's Theme.colorForScore EXACTLY)
+                // Colors are ONLY used for progress bars, NOT for numbers (numbers are white)
+                function getColorForScore(score) {
+                    if (score >= 80) return '#00C853'; // Bright Green (scoreExcellent) - 80-100
+                    if (score >= 70) return '#8BC34A'; // Lime Green (scoreGood) - 70-79
+                    if (score >= 60) return '#FBC02D'; // Yellow (scoreAverage) - 60-69
+                    if (score >= 50) return '#F57C00'; // Orange (scorePoor) - 50-59
+                    return '#D32F2F'; // Red (scoreBad) - below 50
+                }
+                
+                // Draw card background (black rounded rectangle, radius 20)
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.roundRect(0, 0, cardWidth, cardHeight, 20);
+                ctx.fill();
+                
+                // Draw purple border (2px, matching app)
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(0, 0, cardWidth, cardHeight, 20);
+                ctx.stroke();
+                
+                // Draw circular photo bubble at top (185px for quick scan, offset -123 = 2/3 above border)
+                // Note: We've translated the context down by canvasTopPadding, so bubble position is relative to card
+                const photoSize = 185;
+                const photoCenterX = cardWidth / 2;
+                const photoCenterY = -123 + photoSize / 2; // -123 offset + half bubble height (relative to card top at y=0)
+                
+                // Clip to circle and draw photo
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(photoCenterX, photoCenterY, photoSize / 2, 0, Math.PI * 2);
+                ctx.clip();
+                
+                // Draw photo (fill circle, maintaining aspect ratio)
+                const photoAspect = photoImg.width / photoImg.height;
+                let drawWidth = photoSize;
+                let drawHeight = photoSize;
+                let drawX = photoCenterX - photoSize / 2;
+                let drawY = photoCenterY - photoSize / 2;
+                
+                if (photoAspect > 1) {
+                    // Landscape: fit height, center width
+                    drawHeight = photoSize;
+                    drawWidth = photoSize * photoAspect;
+                    drawX = photoCenterX - drawWidth / 2;
+                } else {
+                    // Portrait: fit width, center height
+                    drawWidth = photoSize;
+                    drawHeight = photoSize / photoAspect;
+                    drawY = photoCenterY - drawHeight / 2;
+                }
+                
+                ctx.drawImage(photoImg, drawX, drawY, drawWidth, drawHeight);
+                ctx.restore();
+                
+                // Draw white circle border (2.8px, matching app)
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.8;
+                ctx.beginPath();
+                ctx.arc(photoCenterX, photoCenterY, photoSize / 2, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Card content area (below photo bubble)
+                // Note: topPadding, metricsTopPadding, metricContentHeight, metricTotalHeight, rowSpacing already declared above
+                const horizontalPadding = 20; // Matching app
+                const colSpacing = 6; // Matching app
+                
+                // Metrics grid (3x2) - EXACT layout matching app's UnifiedMetric
+                const metrics = [
+                    { label: 'OVERALL', score: overall },
+                    { label: 'SIZE', score: size },
+                    { label: 'V-TAPER', score: vtaper },
+                    { label: 'SYMMETRY', score: symmetry },
+                    { label: 'DEFINITION', score: definition },
+                    { label: 'PROPORTIONS', score: proportions }
+                ];
+                
+                const gridCols = 2;
+                const gridRows = 3;
+                const metricWidth = (cardWidth - horizontalPadding * 2 - colSpacing) / gridCols;
+                
+                let metricIndex = 0;
+                // Start metrics after topPadding + metricsTopPadding (matching app's layout)
+                let currentY = topPadding + metricsTopPadding;
+                
+                for (let row = 0; row < gridRows; row++) {
+                    for (let col = 0; col < gridCols; col++) {
+                        if (metricIndex >= metrics.length) break;
+                        
+                        const metric = metrics[metricIndex];
+                        const x = horizontalPadding + col * (metricWidth + colSpacing);
+                        const y = currentY;
+                        
+                        // Draw UnifiedMetric component (matching app exactly)
+                        // Title (14px bold, white, left-aligned, 16px from left)
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                        ctx.textAlign = 'left';
+                        ctx.fillText(metric.label, x + 16, y + 14);
+                        
+                        // Score (38px bold, WHITE - NOT colored, left-aligned, 16px from left, 4px below title)
+                        // Note: In the app, numbers are white, only progress bars are colored
+                        ctx.fillStyle = '#ffffff'; // Always white for numbers
+                        ctx.font = 'bold 38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                        ctx.fillText(metric.score.toString(), x + 16, y + 14 + 4 + 38);
+                        
+                        // Get color for progress bar (only the bar is colored, not the number)
+                        const scoreColor = getColorForScore(metric.score);
+                        
+                        // Progress bar (8px height, 80% width, 6px below score)
+                        const barY = y + 14 + 4 + 38 + 6;
+                        const barWidth = metricWidth * 0.8;
+                        const barX = x + (metricWidth - barWidth) / 2; // Centered
+                        const fillWidth = barWidth * (metric.score / 100);
+                        
+                        // Background bar (white 20% opacity)
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                        ctx.beginPath();
+                        ctx.roundRect(barX, barY, barWidth, 8, 4);
+                        ctx.fill();
+                        
+                        // Fill bar (colored)
+                        ctx.fillStyle = scoreColor;
+                        ctx.beginPath();
+                        ctx.roundRect(barX, barY, fillWidth, 8, 4);
+                        ctx.fill();
+                        
+                        metricIndex++;
+                    }
+                    
+                    // Move to next row
+                    if (row < gridRows - 1) {
+                        currentY += metricTotalHeight + rowSpacing;
+                    }
+                }
+                
+                // Watermark at bottom ("Aesthetics AI App", 16px semibold, white 60% opacity, centered)
+                // App uses: .padding(.top, 20) and .padding(.bottom, 28) for quick scan
+                // After last metric row, currentY is at the top of that row
+                // We need: currentY + metricTotalHeight (to get to bottom of last row) + 20 (top padding) + text baseline
+                // Note: watermarkTopPadding already declared above in card height calculation
+                const lastRowBottom = currentY + metricTotalHeight;
+                // For 16px font, the baseline is typically ~12-13px from the top of the text bounding box
+                // We position the baseline at: bottom of last row + top padding + baseline offset
+                const watermarkBaselineOffset = 13; // Approximate baseline position for 16px font
+                const watermarkY = lastRowBottom + watermarkTopPadding + watermarkBaselineOffset;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Aesthetics AI App', cardWidth / 2, watermarkY);
+                
+                // Bottom padding: 28px (matching app's .padding(.bottom, 28))
+                // This is already accounted for in cardHeight calculation
+                
+                console.log('Card rendering complete');
+                
+                // Display preview
+                const preview = document.getElementById('card-preview');
+                if (!preview) {
+                    throw new Error('Preview element not found');
+                }
+                
+                preview.innerHTML = '';
+                const previewImg = document.createElement('img');
+                previewImg.src = canvas.toDataURL('image/png');
+                // Canvas includes bubble area at top, but we want to center based on card rectangle only
+                // Scale down preview: canvas is 3x scale (for high DPI), so display at 1/3 size
+                // Card width is 320px, so preview should be ~320px wide
+                previewImg.style.maxWidth = '320px';
+                previewImg.style.width = 'auto';
+                previewImg.style.height = 'auto';
+                previewImg.style.borderRadius = '12px';
+                previewImg.style.display = 'block';
+                previewImg.style.margin = '0 auto'; // Center horizontally
+                previewImg.style.position = 'relative';
+                // Center vertically based on card rectangle (not including bubble)
+                // The canvas has canvasTopPadding at top (for bubble), card starts after that
+                // To center the card rectangle, we offset down by half the top padding (accounting for scale)
+                // Since canvas is 3x scale, displayed image is 1/3 size, so offset is canvasTopPadding / (2 * scale)
+                const verticalOffset = canvasTopPadding / (2 * scale);
+                previewImg.style.top = `${verticalOffset}px`; // Offset down to center card rectangle
+                previewImg.style.zIndex = '10';
+                preview.appendChild(previewImg);
+                
+                // Also ensure the preview container itself doesn't clip
+                preview.style.overflow = 'visible';
+                preview.style.overflowY = 'visible';
+                preview.style.overflowX = 'visible';
+                preview.style.alignItems = 'center'; // Center vertically in flex container
+                preview.style.alignItems = 'center'; // Center vertically in flex container
+                
+                // Store for download (PNG with transparency)
+                cardCanvas = canvas;
+                cardImageData = canvas.toDataURL('image/png'); // PNG preserves transparency
+                
+                const downloadBtn = document.getElementById('download-btn');
+                if (downloadBtn) {
+                    downloadBtn.style.display = 'block';
+                }
+                
+                console.log('Card generated successfully');
+            } catch (error) {
+                console.error('Error rendering card:', error);
+                alert('Error generating card: ' + error.message + '\n\nCheck console for details (F12 → Console tab)');
+            }
+        }
+        
+        function downloadCard() {
+            if (!cardImageData) {
+                alert('Please generate a card first');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `aesthetics-card-${Date.now()}.png`;
+            link.href = cardImageData;
+            link.click();
+        }
+        
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+        
+        // Debug function to log errors
+        window.addEventListener('error', function(e) {
+            console.error('❌ JavaScript Error:', e.error);
+            console.error('File:', e.filename, 'Line:', e.lineno, 'Column:', e.colno);
+            console.error('Message:', e.message);
+        });
+        
+        // Log when card generator screen is shown
+        const originalShowScreen = window.showScreen;
+        if (typeof originalShowScreen === 'function') {
+            window.showScreen = function(screenName) {
+                if (screenName === 'card-generator') {
+                    console.log('✅ Card Generator screen opened');
+                    // Check if screen element exists
+                    const screen = document.getElementById('card-generator-screen');
+                    if (!screen) {
+                        console.error('❌ Card generator screen element not found!');
+                    } else {
+                        console.log('✅ Card generator screen element found');
+                        // Call original function first
+                        const result = originalShowScreen(screenName);
+                        // Verify the active class was added
+                        setTimeout(() => {
+                            if (screen.classList.contains('active')) {
+                                console.log('✅ Card generator screen has active class');
+                                console.log('Screen computed display:', window.getComputedStyle(screen).display);
+                                console.log('Screen children count:', screen.children.length);
+                            } else {
+                                console.error('❌ Card generator screen does NOT have active class!');
+                                // Force add it
+                                screen.classList.add('active');
+                                console.log('🔧 Manually added active class');
+                            }
+                        }, 100);
+                        return result;
+                    }
+                }
+                return originalShowScreen(screenName);
+            };
+        }
+    </script>
+</body>
+</html>
